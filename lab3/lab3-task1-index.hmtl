@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ page_title }}</title>
+  <meta name="description" content="Created with Ansible">
+</head>
+<body>
+    <div align=center>
+      <h1>{{ page_description }}</h1>
+      <p><b>Type of server:</b> {{ ansible_virtualization_type }}</p>
+      <p><b>Type of OS:</b> {{ ansible_lsb.description }}</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+---
+- name: Apache install
+  hosts: all
+  remote_user: root
+
+  vars:
+    page_title: Page from template
+    page_description: This page created from template with facts and variables
+  tasks:
+    - name: Install apache package
+      yum:
+        name: httpd
+        state: present
+
+    - name: Enable apache service
+      systemd:
+        name: httpd
+        enabled: yes
+        state: started
+
+    - name: Create index.html
+      template:
+        src: "./index.html"
+        dest: "/var/www/html/index.html"
+
+    - name: Open ports on firewall
+      firewalld:
+        zone: public
+        service: "{{ item }}"
+        permanent: yes
+        state: enabled
+      notify: reload firewalld
+      loop:
+        - http
+        - https
+
+  handlers:
+    - name: reload firewalld
+      systemd:
+        name: firewalld
+        state: reloaded

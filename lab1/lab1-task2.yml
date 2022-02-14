@@ -1,0 +1,32 @@
+---
+- name: Apache uninstall
+  hosts: all
+  remote_user: root
+
+  tasks:
+    - name: Remove apache package
+      yum:
+        name: httpd
+        state: absent
+
+    - name: Remove index.html
+      file:
+        state: absent
+        dest: "/var/www/html/index.html"
+
+    - name: Close ports on firewall
+      firewalld:
+        zone: public
+        service: "{{ item }}"
+        permanent: yes
+        state: disabled
+      notify: reload firewalld
+      loop:
+        - http
+        - https
+
+  handlers:
+    - name: reload firewalld
+      systemd:
+        name: firewalld
+        state: reloaded

@@ -1,0 +1,38 @@
+---
+- name: Apache install
+  hosts: all
+  remote_user: root
+
+  tasks:
+    - name: Install apache package
+      yum:
+        name: httpd
+        state: present
+
+    - name: Enable apache service
+      systemd:
+        name: httpd
+        enabled: yes
+        state: started
+
+    - name: Create index.html
+      copy:
+        dest: "/var/www/html/index.html"
+        content: "Welcome to my web server"
+
+    - name: Open ports on firewall
+      firewalld:
+        zone: public
+        service: "{{ item }}"
+        permanent: yes
+        state: enabled
+      notify: reload firewalld
+      loop:
+        - http
+        - https
+
+  handlers:
+    - name: reload firewalld
+      systemd:
+        name: firewalld
+        state: reloaded

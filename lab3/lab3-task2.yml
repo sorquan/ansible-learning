@@ -1,0 +1,65 @@
+---
+- name: vsftpd install and configure
+  hosts: all
+  remote_user: root
+
+  tasks:
+    - name: Install vsftpd package
+      yum:
+        name: vsftpd
+        state: present
+
+    - name: Enable vsftpd service
+      systemd:
+        name: vsftpd
+        enabled: yes
+
+    - name: configure selinux
+      ansible.posix.seboolean:
+        name: ftpd_anon_write
+        state: yes
+        persistent: yes
+
+    - name: set selinux file context
+      community.general.sefcontext:
+        target: '/var/ftp/pub/upload'
+        setype: public_content_rw_t
+      notify: run restorecon
+      
+    - name: make upload dir
+      file:
+        path: "/var/ftp/pub/upload"
+        state: directory
+        mode: 0777
+        owner: ftp
+        group: ftp
+    
+    - name: Create vsftpd config
+      copy:
+        src: "./vsftpd.conf"
+        dest: "/etc/vsftpd/vsftpd.conf"
+        mode: 0600
+      notify: start vsftpd
+
+    - name: Open ports on firewall
+      firewalld:
+        zone: public
+        service: ftp
+        permanent: yes
+        state: enabled
+      notify:
+        - reload firewalld
+
+  handlers:
+    - name: start vsftpd
+      systemd:
+        name: vsftpd
+        state: started
+
+    - name: reload firewalld
+      systemd:
+        name: firewalld
+        state: reloaded
+        
+    - name: restorecon
+      command: restorecon -irv /var/ftp/pub/upload

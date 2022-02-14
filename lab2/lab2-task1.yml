@@ -1,0 +1,17 @@
+---
+- name: Create users
+  hosts: all 
+  vars_files:
+    - lab2-task1-users.yml 
+  tasks:
+    - name: Create user
+      user:
+        name: "{{ item.key.lower() }}"
+        home: "/home/{{ item.key.lower() }}"
+        comment: "{{ item.key.lower() }}@example.com"
+        password: "{{ item.value.password | password_hash('sha512') }}"
+        create_home: yes
+        state: present
+      no_log: true
+      with_dict:
+        - "{{ users }}"
