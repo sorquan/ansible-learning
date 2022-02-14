@@ -12,6 +12,7 @@
         password: "{{ item.value.password | password_hash('sha512') }}"
         create_home: yes
         state: present
+        update_password: on_create
       no_log: true
       with_dict:
         - "{{ users }}"
